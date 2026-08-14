@@ -1,0 +1,361 @@
+<%- include('partials/head', { title: 'Student Management' }) %>
+<%- include('partials/sidebar', { page: 'students', admin: admin }) %>
+
+<style>
+  tr.student-row { cursor: pointer; }
+  #detail-panel.loading { opacity: 0.5; pointer-events: none; transition: opacity 0.15s ease; }
+
+  .fselect {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .fselect.active {
+    border-color: #6366f1;
+    color: #6366f1;
+  }
+
+  .fselect-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 180px;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    z-index: 50;
+    padding: 4px;
+  }
+
+  .fselect.open .fselect-dropdown {
+    display: block;
+  }
+
+  .fselect-option {
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #374151;
+    white-space: nowrap;
+  }
+
+  .fselect-option:hover {
+    background: #f3f4f6;
+  }
+
+  .fselect-option.selected {
+    background: #eef2ff;
+    color: #4338ca;
+    font-weight: 500;
+  }
+
+  .check-icon.pending { color: #d97706; }
+</style>
+
+<div class="topbar">
+  <div class="heading"><div class="eyebrow">Student Management</div><h1>Students</h1></div>
+</div>
+
+<div class="filter-bar">
+  <div class="search-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Search by name, ID, or email…</div>
+  <div class="filter-divider"></div>
+
+  <div class="fselect" data-filter="college" tabindex="0">
+    <span class="fselect-label">College</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="fselect-dropdown">
+      <div class="fselect-option" data-value="">All Colleges</div>
+      <% rows.forEach(function(r) { %>
+        <div class="fselect-option" data-value="<%= r.College_Name %>"><%= r.College_Name %></div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="fselect" data-filter="state" tabindex="0">
+    <span class="fselect-label">State</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="fselect-dropdown">
+      <div class="fselect-option" data-value="">All States</div>
+      <% stateRows.forEach(function(st) { %>
+        <div class="fselect-option" data-value="<%= st.State_Name %>"><%= st.State_Name %></div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="fselect" data-filter="category" tabindex="0">
+    <span class="fselect-label">Category</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="fselect-dropdown">
+      <div class="fselect-option" data-value="">All Categories</div>
+      <div class="fselect-option" data-value="General">General</div>
+      <div class="fselect-option" data-value="OBC">OBC</div>
+      <div class="fselect-option" data-value="SC">SC</div>
+      <div class="fselect-option" data-value="ST">ST</div>
+      <div class="fselect-option" data-value="EWS">EWS</div>
+    </div>
+  </div>
+
+  <div class="fselect" data-filter="cgpa" tabindex="0">
+    <span class="fselect-label">CGPA</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="fselect-dropdown">
+      <div class="fselect-option" data-value="">Any CGPA</div>
+      <div class="fselect-option" data-value="9">9 and above</div>
+      <div class="fselect-option" data-value="8">8 and above</div>
+      <div class="fselect-option" data-value="7">7 and above</div>
+      <div class="fselect-option" data-value="6">6 and above</div>
+    </div>
+  </div>
+
+  <div class="fselect" data-filter="eligibility" tabindex="0">
+    <span class="fselect-label">Eligibility</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="fselect-dropdown">
+      <div class="fselect-option" data-value="">All</div>
+      <div class="fselect-option" data-value="Approved">Eligible</div>
+      <div class="fselect-option" data-value="Pending">Under Review</div>
+      <div class="fselect-option" data-value="Rejected">Not Eligible</div>
+    </div>
+  </div>
+
+  <div class="results-count" id="results-count"><%= pagination.totalCount.toLocaleString('en-IN') %> students found</div>
+</div>
+
+<div class="grid-2 wide-right">
+  <div class="panel">
+    <table>
+      <thead><tr><th>Student</th><th>College</th><th>State</th><th>Category</th><th>CGPA</th><th>Eligibility</th><th></th></tr></thead>
+      <tbody>
+        <% students.forEach(function(s) { %>
+        <tr class="student-row <%= s.id === selectedStudent.id ? 'selected' : '' %>" data-id="<%= s.id %>">
+          <td><div class="stu"><div><div class="n"><%= s.name %></div><div class="m"><%= s.studentCode %></div></div></div></td>
+          <td><%= s.college %></td>
+          <td><%= s.state %></td>
+          <td><%= s.category %></td>
+          <td><%= s.cgpa %></td>
+          <td><span class="pill <%= s.eligibilityClass %>"><%= s.eligibilityLabel %></span></td>
+          <td><div class="row-icon">⋯</div></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <div class="info">Showing <%= pagination.from %>–<%= pagination.to %> of <%= pagination.totalCount.toLocaleString('en-IN') %></div>
+      <div class="page-btns">
+        <div class="page-btn">‹</div>
+        <% for (let p = 1; p <= pagination.totalPages; p++) { %>
+        <div class="page-btn <%= p === pagination.currentPage ? 'active' : '' %>"><%= p %></div>
+        <% } %>
+        <div class="page-btn">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="detail-panel">
+    <div class="detail-top">
+      <div class="detail-status"><span class="pill <%= selectedStudent.eligibilityClass %>" id="d-status"><%= selectedStudent.eligibilityLabel %></span></div>
+      <div class="detail-name" id="d-name"><%= selectedStudent.name %></div>
+      <div class="detail-id" id="d-idline"><%= selectedStudent.studentCode %> &nbsp;·&nbsp; <%= selectedStudent.course %></div>
+    </div>
+    <div class="detail-body">
+      <div class="info-grid" id="d-info">
+        <div class="info-item"><div class="k">College</div><div class="v"><%= selectedStudent.collegeFull %></div></div>
+        <div class="info-item"><div class="k">State</div><div class="v"><%= selectedStudent.state %></div></div>
+        <div class="info-item"><div class="k">Category</div><div class="v"><%= selectedStudent.category %></div></div>
+        <div class="info-item"><div class="k">CGPA</div><div class="v"><%= selectedStudent.cgpa %> / 10</div></div>
+        <div class="info-item"><div class="k">Family Income</div><div class="v">₹<%= selectedStudent.familyIncome.toLocaleString('en-IN') %> / yr</div></div>
+      </div>
+      <div class="stat-row" id="d-stats">
+        <div class="stat-box"><div class="num serif"><%= selectedStudent.stats.applied %></div><div class="lbl">Applied</div></div>
+        <div class="stat-box"><div class="num serif"><%= selectedStudent.stats.approved %></div><div class="lbl">Approved</div></div>
+        <div class="stat-box"><div class="num serif"><%= selectedStudent.stats.pending %></div><div class="lbl">Pending</div></div>
+      </div>
+      <div class="subhead">Application History</div>
+      <div style="margin-bottom:18px;" id="d-history">
+        <% selectedStudent.applicationHistory.forEach(function(h) { %>
+        <div class="doc-item"><div><div class="doc-name"><%= h.scholarshipName %></div><div class="doc-sub"><%= h.statusLine %></div></div><span class="pill <%= h.statusClass %>"><%= h.statusLabel %></span></div>
+        <% }) %>
+      </div>
+      <div class="subhead">Document Checklist</div>
+      <div class="doc-checklist" id="d-docs">
+        <% selectedStudent.documents.forEach(function(doc) { %>
+        <div class="doc-check-row">
+          <span class="l"><span class="check-icon <%= doc.iconClass %>"><%= doc.icon %></span><%= doc.name %></span>
+          <span class="doc-sub" style="margin-left:auto;color:#999;"><%= doc.status %></span>
+        </div>
+        <% }) %>
+      </div>
+      <div class="subhead">Scholarships</div>
+      <div style="margin-bottom:6px;" id="d-scholarships">
+        <% selectedStudent.scholarships.forEach(function(sch) { %>
+        <div class="doc-item"><div><div class="doc-name"><%= sch.name %></div><div class="doc-sub">₹<%= sch.amount.toLocaleString('en-IN') %> &nbsp;·&nbsp; Deadline: <%= sch.deadline %></div></div><span class="pill <%= sch.statusClass %>"><%= sch.statusLabel %></span></div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tbody = document.querySelector('table tbody');
+  const panel = document.getElementById('detail-panel');
+
+  // ---- row click -> load detail ----
+  tbody.addEventListener('click', (e) => {
+    const row = e.target.closest('tr.student-row');
+    if (!row) return;
+    loadStudent(row.dataset.id, row);
+  });
+
+  async function loadStudent(id, row) {
+    document.querySelectorAll('tr.student-row.selected').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+
+    panel.classList.add('loading');
+
+    try {
+      const res = await fetch(`/students/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch student');
+      const s = await res.json();
+      renderDetail(s);
+    } catch (err) {
+      console.error(err);
+      alert('Could not load student details. Please try again.');
+    } finally {
+      panel.classList.remove('loading');
+    }
+  }
+
+  function renderDetail(s) {
+    document.getElementById('d-status').textContent = s.eligibilityLabel;
+    document.getElementById('d-status').className = `pill ${s.eligibilityClass}`;
+    document.getElementById('d-name').textContent = s.name;
+    document.getElementById('d-idline').textContent = `${s.studentCode} · ${s.course}`;
+
+    document.getElementById('d-info').innerHTML = `
+      <div class="info-item"><div class="k">College</div><div class="v">${s.collegeFull}</div></div>
+      <div class="info-item"><div class="k">State</div><div class="v">${s.state}</div></div>
+      <div class="info-item"><div class="k">Category</div><div class="v">${s.category}</div></div>
+      <div class="info-item"><div class="k">CGPA</div><div class="v">${s.cgpa} / 10</div></div>
+      <div class="info-item"><div class="k">Family Income</div><div class="v">₹${Number(s.familyIncome).toLocaleString('en-IN')} / yr</div></div>
+    `;
+
+    document.getElementById('d-stats').innerHTML = `
+      <div class="stat-box"><div class="num serif">${s.stats.applied}</div><div class="lbl">Applied</div></div>
+      <div class="stat-box"><div class="num serif">${s.stats.approved}</div><div class="lbl">Approved</div></div>
+      <div class="stat-box"><div class="num serif">${s.stats.pending}</div><div class="lbl">Pending</div></div>
+    `;
+
+    document.getElementById('d-history').innerHTML = s.applicationHistory.map(h => `
+      <div class="doc-item"><div><div class="doc-name">${h.scholarshipName}</div><div class="doc-sub">${h.statusLine}</div></div><span class="pill ${h.statusClass}">${h.statusLabel}</span></div>
+    `).join('');
+
+    document.getElementById('d-docs').innerHTML = s.documents.map(doc => `
+      <div class="doc-check-row">
+        <span class="l"><span class="check-icon ${doc.iconClass}">${doc.icon}</span>${doc.name}</span>
+        <span class="doc-sub" style="margin-left:auto;color:#999;">${doc.status}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('d-scholarships').innerHTML = s.scholarships.map(sch => `
+      <div class="doc-item"><div><div class="doc-name">${sch.name}</div><div class="doc-sub">₹${Number(sch.amount).toLocaleString('en-IN')} · Deadline: ${sch.deadline}</div></div><span class="pill ${sch.statusClass}">${sch.statusLabel}</span></div>
+    `).join('');
+  }
+
+  // ---- filter dropdowns ----
+  const filterState = {
+    college: '',
+    state: '',
+    category: '',
+    cgpa: '',
+    eligibility: ''
+  };
+
+  const fselects = document.querySelectorAll('.fselect');
+
+  fselects.forEach(fs => {
+    const key = fs.dataset.filter;
+    const label = fs.querySelector('.fselect-label');
+    const defaultLabel = label.textContent;
+
+    fs.addEventListener('click', () => {
+      fselects.forEach(other => { if (other !== fs) other.classList.remove('open'); });
+      fs.classList.toggle('open');
+    });
+
+    fs.querySelectorAll('.fselect-option').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const value = opt.dataset.value;
+
+        filterState[key] = value;
+        label.textContent = value ? opt.textContent : defaultLabel;
+        fs.classList.toggle('active', !!value);
+
+        fs.querySelectorAll('.fselect-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+
+        fs.classList.remove('open');
+        applyFilters();
+      });
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.fselect')) {
+      fselects.forEach(fs => fs.classList.remove('open'));
+    }
+  });
+
+  async function applyFilters() {
+    const params = new URLSearchParams();
+    Object.entries(filterState).forEach(([k, v]) => { if (v) params.set(k, v); });
+
+    try {
+      const res = await fetch(`/students/filter?${params.toString()}`);
+      if (!res.ok) throw new Error('Filter request failed');
+      const data = await res.json();
+      renderStudentList(data.students, data.pagination);
+    } catch (err) {
+      console.error(err);
+      alert('Could not apply filters. Please try again.');
+    }
+  }
+
+  function renderStudentList(students, pagination) {
+    if (!students.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#999;padding:24px;">No students match these filters</td></tr>`;
+    } else {
+      tbody.innerHTML = students.map(s => `
+        <tr class="student-row" data-id="${s.id}">
+          <td><div class="stu"><div><div class="n">${s.name}</div><div class="m">${s.studentCode}</div></div></div></td>
+          <td>${s.college}</td>
+          <td>${s.state}</td>
+          <td>${s.category}</td>
+          <td>${s.cgpa}</td>
+          <td><span class="pill ${s.eligibilityClass}">${s.eligibilityLabel}</span></td>
+          <td><div class="row-icon">⋯</div></td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('results-count').textContent =
+      `${pagination.totalCount.toLocaleString('en-IN')} students found`;
+
+    const infoEl = document.querySelector('.pagination .info');
+    if (infoEl) {
+      infoEl.textContent = pagination.totalCount
+        ? `Showing ${pagination.from}–${pagination.to} of ${pagination.totalCount.toLocaleString('en-IN')}`
+        : `Showing 0 of 0`;
+    }
+  }
+});
+</script>
+
+</main>
+<%- include('partials/footer') %>

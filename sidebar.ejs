@@ -1,0 +1,55 @@
+<aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">V</div>
+      <div class="brand-text"><div class="name">Vidya Sethu</div><div class="sub">Admin Portal</div></div>
+    </div>
+
+    <div class="nav-group">
+      <a class="nav-item <%= page === 'dashboard' ? 'active' : '' %>" href="/"><span class="dot"></span>Dashboard</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Student Management</div>
+      <a class="nav-item <%= page === 'students' ? 'active' : '' %>" href="/students"><span class="dot"></span>Student List</a>
+      <a class="nav-item <%= page === 'students' ? 'active' : '' %>" href="/students"><span class="dot"></span>Student Profile</a>
+      <a class="nav-item <%= page === 'applications' ? 'active' : '' %>" href="/applications"><span class="dot"></span>Application History</a>
+      <a class="nav-item <%= page === 'eligibility' ? 'active' : '' %>" href="/eligibility"><span class="dot"></span>Eligibility Status</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Scholarship Management</div>
+      <a class="nav-item <%= page === 'scholarships' ? 'active' : '' %>" href="/scholarships"><span class="dot"></span>Scholarship List</a>
+      <a class="nav-item <%= page === 'scholarships' ? 'active' : '' %>" href="/scholarships"><span class="dot"></span>Applicant List</a>
+      <a class="nav-item <%= page === 'scholarships' ? 'active' : '' %>" href="/scholarships"><span class="dot"></span>Seat Availability</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Applications</div>
+      <a class="nav-item <%= page === 'applications' ? 'active' : '' %>" href="/applications"><span class="dot"></span>New</a>
+      <a class="nav-item <%= page === 'applications' ? 'active' : '' %>" href="/applications"><span class="dot"></span>Pending</a>
+      <a class="nav-item <%= page === 'applications' ? 'active' : '' %>" href="/applications"><span class="dot"></span>Approved</a>
+      <a class="nav-item <%= page === 'applications' ? 'active' : '' %>" href="/applications"><span class="dot"></span>Rejected / Withdrawn</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Eligibility &amp; Verification</div>
+      <a class="nav-item <%= page === 'eligibility' ? 'active' : '' %>" href="/eligibility"><span class="dot"></span>Missing Documents</a>
+      <a class="nav-item <%= page === 'eligibility' ? 'active' : '' %>" href="/eligibility"><span class="dot"></span>Pending Verification</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Reports &amp; Analytics</div>
+      <a class="nav-item <%= page === 'reports' ? 'active' : '' %>" href="/reports"><span class="dot"></span>College-wise Reports</a>
+      <a class="nav-item <%= page === 'reports' ? 'active' : '' %>" href="/reports"><span class="dot"></span>State-wise Reports</a>
+      <a class="nav-item <%= page === 'reports' ? 'active' : '' %>" href="/reports"><span class="dot"></span>Scholarship Utilization</a>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="foot-user">
+        <div class="avatar"><%= admin.initials %></div>
+        <div class="who"><div class="who-name"><%= admin.name %></div><div class="who-role"><%= admin.role %></div></div>
+      </div>
+      <a class="nav-item" href="/logout" style="margin-top:8px;"><span class="dot"></span>Logout</a>
+    </div>
+  </aside>
+<main class="main">
