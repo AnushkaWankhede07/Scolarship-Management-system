@@ -1,0 +1,113 @@
+<%- include('partials/head', { title: 'Reports & Analytics' }) %>
+<%- include('partials/sidebar', { page: 'reports', admin: admin }) %>
+
+<style>
+  /* report cards are now <a> tags — strip link styling, keep original card look */
+  .report-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .report-card:hover { text-decoration: none; }
+  .report-card .rname { text-decoration: none; }
+
+  /* tighten vertical gaps between sections */
+  .report-grid { margin-bottom: 20px; }
+  .kpi-row.c4 { margin-bottom: 20px; }
+  .panel { margin-bottom: 0; }
+  .panel + .panel { margin-top: 20px; }
+  .panel table { margin-bottom: 0; }
+</style>
+
+<div class="topbar">
+  <div class="heading"><div class="eyebrow">Reports &amp; Analytics</div><h1>Reports</h1></div>
+  <button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Export CSV / PDF</button>
+</div>
+
+<div class="report-grid">
+  <% reportCards.forEach(function(c) { %>
+  <a class="report-card <%= c.key === activeReport ? 'active' : '' %>" href="/reports?report=<%= c.key %>">
+    <div class="ricon"><%- c.iconSvg %></div>
+    <div class="rname"><%= c.name %></div>
+    <div class="rsub"><%= c.subtitle %></div>
+  </a>
+  <% }) %>
+</div>
+
+<div class="kpi-row c4">
+  <div class="kpi"><div class="top-row"><span class="label">Total Amount Distributed</span></div><div class="value serif"><%= kpis.totalAmountDistributed %></div><div class="delta up">↑ <%= kpis.amountGrowthPct %>% vs last cycle</div></div>
+  <div class="kpi"><div class="top-row"><span class="label">Students, Multiple Applications</span></div><div class="value serif"><%= kpis.multiApplicantCount.toLocaleString('en-IN') %></div><div class="delta">Avg <%= kpis.avgApplicationsPerMultiApplicant %> each</div></div>
+  <div class="kpi"><div class="top-row"><span class="label">Highest Applications</span></div><div class="value serif"><%= kpis.highestApplicationsCount.toLocaleString('en-IN') %></div><div class="delta"><%= kpis.highestApplicationsScholarship %></div></div>
+  <div class="kpi"><div class="top-row"><span class="label">Lowest Applications</span></div><div class="value serif"><%= kpis.lowestApplicationsCount %></div><div class="delta down"><%= kpis.lowestApplicationsScholarship %></div></div>
+</div>
+
+<% if (activeReport === 'college-wise') { %>
+  <div class="panel">
+    <div class="panel-head"><div><h3>College-wise applications &amp; approvals</h3><div class="sub">Top <%= collegeReport.labels.length %> colleges by volume</div></div></div>
+    <table>
+      <thead><tr><th>College</th><th>Applications</th><th>Approved</th></tr></thead>
+      <tbody>
+        <% collegeReport.labels.forEach(function(name, i) { %>
+        <tr><td><%= name %></td><td><%= collegeReport.applications[i].toLocaleString('en-IN') %></td><td><%= collegeReport.approved[i].toLocaleString('en-IN') %></td></tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div><h3>State-wise summary</h3><div class="sub">Applications, approvals, and amount distributed</div></div><a class="link" href="/reports?report=state-wise">View all states →</a></div>
+    <table>
+      <thead><tr><th>State</th><th>Applications</th><th>Approved</th><th>Approval Rate</th><th>Amount Distributed</th></tr></thead>
+      <tbody>
+        <% stateSummary.forEach(function(row) { %>
+        <tr><td><%= row.state %></td><td><%= row.applications.toLocaleString('en-IN') %></td><td><%= row.approved.toLocaleString('en-IN') %></td><td><%= row.approvalRatePct %>%</td><td class="amount"><%= row.amountDistributed %></td></tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<% if (activeReport === 'state-wise') { %>
+  <div class="panel">
+    <div class="panel-head"><div><h3>State-wise summary</h3><div class="sub">Applications, approvals, and amount distributed — all states</div></div></div>
+    <table>
+      <thead><tr><th>State</th><th>Applications</th><th>Approved</th><th>Approval Rate</th><th>Amount Distributed</th></tr></thead>
+      <tbody>
+        <% stateSummaryAll.forEach(function(row) { %>
+        <tr><td><%= row.state %></td><td><%= row.applications.toLocaleString('en-IN') %></td><td><%= row.approved.toLocaleString('en-IN') %></td><td><%= row.approvalRatePct %>%</td><td class="amount"><%= row.amountDistributed %></td></tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<% if (activeReport === 'category-wise') { %>
+  <div class="panel">
+    <div class="panel-head"><div><h3>Category-wise summary</h3><div class="sub">Applications, approvals, and amount distributed</div></div></div>
+    <table>
+      <thead><tr><th>Category</th><th>Applications</th><th>Approved</th><th>Approval Rate</th><th>Amount Distributed</th></tr></thead>
+      <tbody>
+        <% categorySummary.forEach(function(row) { %>
+        <tr><td><%= row.category %></td><td><%= row.applications.toLocaleString('en-IN') %></td><td><%= row.approved.toLocaleString('en-IN') %></td><td><%= row.approvalRatePct %>%</td><td class="amount"><%= row.amountDistributed %></td></tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<% if (activeReport === 'utilization') { %>
+  <div class="panel">
+    <div class="panel-head"><div><h3>Scholarship Utilization</h3><div class="sub">Seats filled vs. total available seats</div></div></div>
+    <table>
+      <thead><tr><th>Scholarship</th><th>Total Seats</th><th>Seats Filled</th><th>Utilization</th></tr></thead>
+      <tbody>
+        <% utilization.forEach(function(row) { %>
+        <tr><td><%= row.name %></td><td><%= row.totalSeats.toLocaleString('en-IN') %></td><td><%= row.seatsFilled.toLocaleString('en-IN') %></td><td><%= row.utilizationPct %>%</td></tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+</main>
+<%- include('partials/footer') %>

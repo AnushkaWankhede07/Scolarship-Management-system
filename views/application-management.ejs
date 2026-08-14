@@ -1,0 +1,481 @@
+<%- include('partials/head', { title: 'Application Management' }) %>
+<%- include('partials/sidebar', { page: 'applications', admin: admin }) %>
+
+<style>
+  /* ===== Layout ===== */
+  main { padding: 28px 32px; font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #1c1c1e; }
+
+  .topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .heading .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #8a8a92; margin-bottom: 4px; }
+  .heading h1 { font-size: 26px; font-weight: 700; margin: 0; }
+
+  .btn-outline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px; border: 1px solid #d8d8dd; border-radius: 8px;
+    background: #fff; color: #33333a; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .btn-outline:hover { border-color: #b8b8c0; background: #fafafc; }
+
+  /* ===== Tabs ===== */
+  .tabs-row { display: flex; gap: 4px; border-bottom: 1px solid #e6e6ea; margin-bottom: 20px; }
+  .tabx {
+    padding: 10px 18px; font-size: 14px; font-weight: 600; color: #8a8a92;
+    cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color .15s, border-color .15s; text-decoration: none;
+  }
+  .tabx:hover { color: #45454d; }
+  .tabx.active { color: #2f6fed; border-bottom-color: #2f6fed; }
+
+  /* ===== KPI cards ===== */
+  .kpi-row { display: grid; gap: 16px; margin-bottom: 22px; }
+  .kpi-row.c3 { grid-template-columns: repeat(3, 1fr); }
+  .kpi {
+    background: #fff; border: 1px solid #eaeaee; border-radius: 12px;
+    padding: 16px 18px; box-shadow: 0 1px 2px rgba(20,20,30,.03);
+  }
+  .kpi .top-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .kpi .label { font-size: 12.5px; font-weight: 600; color: #8a8a92; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi .value.serif { font-family: 'Georgia', serif; font-size: 28px; font-weight: 600; }
+  .kpi .delta { font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .kpi .delta.warn { color: #b8860b; }
+  .kpi .delta.up { color: #1f9d55; }
+  .kpi .delta.down { color: #d33; }
+
+  /* ===== Filter bar ===== */
+  .filter-bar {
+    display: flex; align-items: center; gap: 14px; background: #fff;
+    border: 1px solid #eaeaee; border-radius: 10px; padding: 10px 14px; margin-bottom: 18px;
+  }
+  .search-wrap {
+    display: flex; align-items: center; gap: 8px; flex: 1;
+    color: #9a9aa2; font-size: 13.5px;
+  }
+  .search-wrap input {
+    border: none; outline: none; font-size: 13.5px; flex: 1; color: #1c1c1e; background: transparent;
+  }
+  .search-wrap svg { flex-shrink: 0; color: #b0b0b8; }
+  .filter-divider { width: 1px; height: 22px; background: #e6e6ea; }
+  .fselect {
+    display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 500;
+    color: #45454d; cursor: pointer; padding: 6px 10px; border-radius: 6px; position: relative;
+  }
+  .fselect:hover { background: #f5f5f8; }
+  .fselect select {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .results-count { margin-left: auto; font-size: 13px; color: #8a8a92; white-space: nowrap; }
+
+  /* ===== Two-panel grid ===== */
+  .grid-2 { display: grid; gap: 20px; }
+  .grid-2.wide-right { grid-template-columns: 1.35fr 1fr; }
+  .panel {
+    background: #fff; border: 1px solid #eaeaee; border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(20,20,30,.03); overflow: hidden;
+  }
+
+  /* ===== Table ===== */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    text-align: left; font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em; color: #9a9aa2; padding: 12px 16px; border-bottom: 1px solid #eee;
+  }
+  tbody tr { border-bottom: 1px solid #f1f1f4; cursor: pointer; transition: background .12s; }
+  tbody tr:hover { background: #f9f9fc; }
+  tbody tr.selected { background: #eef4ff; }
+  tbody td { padding: 12px 16px; vertical-align: middle; }
+  .stu .n { font-weight: 600; font-size: 13.5px; }
+  .stu .m { font-size: 12px; color: #9a9aa2; margin-top: 2px; }
+  td.amount { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .row-icon {
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; color: #9a9aa2; cursor: pointer; position: relative;
+  }
+  .row-icon:hover { background: #eee; color: #45454d; }
+
+  .pill {
+    display: inline-block; padding: 4px 10px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 700; text-transform: capitalize;
+  }
+  .pill.pending { background: #fff3d6; color: #a3760b; }
+  .pill.approved { background: #dff5e6; color: #1f9d55; }
+  .pill.rejected { background: #fde3e3; color: #d33; }
+
+  /* ===== Pagination ===== */
+  .pagination {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-top: 1px solid #eee; font-size: 12.5px; color: #8a8a92;
+  }
+  .page-btns { display: flex; gap: 4px; }
+  .page-btn {
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; color: #45454d;
+  }
+  .page-btn:hover { background: #f1f1f4; }
+  .page-btn.active { background: #2f6fed; color: #fff; }
+  .page-btn.disabled { pointer-events: none; opacity: .35; }
+
+  /* ===== Detail panel ===== */
+  .detail-top { padding: 20px 20px 16px; border-bottom: 1px solid #f1f1f4; }
+  .detail-status { margin-bottom: 10px; }
+  .detail-name { font-size: 19px; font-weight: 700; }
+  .detail-id { font-size: 12.5px; color: #8a8a92; margin-top: 4px; }
+  .detail-body { padding: 18px 20px 22px; }
+  .subhead { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #9a9aa2; margin-bottom: 14px; }
+
+  .stepper { display: flex; justify-content: space-between; margin-bottom: 22px; position: relative; }
+  .stepper::before {
+    content: ''; position: absolute; top: 14px; left: 30px; right: 30px; height: 2px; background: #eee; z-index: 0;
+  }
+  .step { display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; position: relative; z-index: 1; }
+  .step .circle {
+    width: 28px; height: 28px; border-radius: 50%; background: #f1f1f4; color: #9a9aa2;
+    display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; margin-bottom: 8px;
+  }
+  .step.done .circle { background: #1f9d55; color: #fff; }
+  .step.current .circle { background: #2f6fed; color: #fff; }
+  .step .stitle { font-size: 11.5px; font-weight: 600; }
+  .step .sdate { font-size: 10.5px; color: #9a9aa2; margin-top: 2px; }
+
+  .divider { height: 1px; background: #f1f1f4; margin: 18px 0; }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px; }
+  .info-item .k { font-size: 11.5px; color: #9a9aa2; margin-bottom: 3px; }
+  .info-item .v { font-size: 14.5px; font-weight: 600; }
+
+  .doc-checklist { display: flex; flex-direction: column; gap: 10px; }
+  .doc-check-row { display: flex; align-items: center; font-size: 13.5px; }
+  .doc-check-row .l { display: flex; align-items: center; gap: 8px; }
+  .check-icon.ok {
+    width: 18px; height: 18px; border-radius: 50%; background: #1f9d55; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0;
+  }
+
+  .empty-state { padding: 40px 20px; text-align: center; color: #9a9aa2; font-size: 13.5px; }
+
+  @media (max-width: 980px) {
+    .grid-2.wide-right { grid-template-columns: 1fr; }
+    .kpi-row.c3 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<div class="topbar">
+  <div class="heading"><div class="eyebrow">Application Management</div><h1>Applications</h1></div>
+  <button class="btn-outline" id="exportBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Export</button>
+</div>
+
+<div class="tabs-row">
+  <% tabs.filter(function(t) { return t.key !== 'new' && t.key !== 'withdrawn'; }).forEach(function(t) { %>
+  <a class="tabx <%= t.key === activeTab ? 'active' : '' %>" href="?tab=<%= t.key %>&page=1"><%= t.label %></a>
+  <% }) %>
+</div>
+
+<div class="kpi-row c3">
+  <div class="kpi"><div class="top-row"><span class="label">Pending</span></div><div class="value serif"><%= kpis.pendingCount.toLocaleString('en-IN') %></div><div class="delta warn"><%= kpis.pendingAvgWaitDays %>d avg wait</div></div>
+  <div class="kpi"><div class="top-row"><span class="label">Approved</span></div><div class="value serif"><%= kpis.approvedCount.toLocaleString('en-IN') %></div><div class="delta up"><%= kpis.approvedPct %>%</div></div>
+  <div class="kpi"><div class="top-row"><span class="label">Rejected</span></div><div class="value serif"><%= kpis.rejectedCount.toLocaleString('en-IN') %></div><div class="delta down"><%= kpis.rejectedPct %>%</div></div>
+</div>
+
+<form id="filterForm" class="filter-bar" method="get" action="">
+  <input type="hidden" name="tab" value="<%= activeTab %>">
+  <input type="hidden" name="page" value="1">
+  <div class="search-wrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="text" name="q" placeholder="Search by applicant or scholarship…" value="<%= (typeof query !== 'undefined' && query) ? query : '' %>">
+  </div>
+  <div class="filter-divider"></div>
+  <div class="fselect">
+    <span id="scholarshipLabel">Scholarship</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    <select name="scholarship" onchange="document.getElementById('filterForm').submit()">
+      <option value="">All Scholarships</option>
+      <% if (typeof scholarshipOptions !== 'undefined') { scholarshipOptions.forEach(function(s) { %>
+      <option value="<%= s.id %>" <%= (typeof selectedScholarship !== 'undefined' && String(selectedScholarship) === String(s.id)) ? 'selected' : '' %>><%= s.name %></option>
+      <% }) } %>
+    </select>
+  </div>
+  <div class="fselect">
+    <span id="collegeLabel">College</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    <select name="college" onchange="document.getElementById('filterForm').submit()">
+      <option value="">All Colleges</option>
+      <% if (typeof collegeOptions !== 'undefined') { collegeOptions.forEach(function(c) { %>
+      <option value="<%= c.id %>" <%= (typeof selectedCollege !== 'undefined' && String(selectedCollege) === String(c.id)) ? 'selected' : '' %>><%= c.name %></option>
+      <% }) } %>
+    </select>
+  </div>
+  <div class="results-count"><%= pagination.totalCount.toLocaleString('en-IN') %> <%= activeTab %> applications</div>
+</form>
+
+<div class="grid-2 wide-right">
+  <div class="panel">
+    <table>
+      <thead><tr><th>Student</th><th>Scholarship</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% if (applications.length === 0) { %>
+        <tr><td colspan="5" class="empty-state">No applications found for this view.</td></tr>
+        <% } %>
+        <% applications.forEach(function(a) { %>
+        <tr class="app-row <%= selectedApplication && a.id === selectedApplication.id ? 'selected' : '' %>" data-id="<%= a.id %>">
+          <td><div class="stu"><div><div class="n"><%= a.studentName %></div><div class="m"><%= a.applicationCode %></div></div></div></td>
+          <td><%= a.scholarshipName %></td>
+          <td class="amount">₹<%= a.amount.toLocaleString('en-IN') %></td>
+          <td><span class="pill <%= a.statusClass %>"><%= a.statusLabel %></span></td>
+          <td><div class="row-icon" data-menu-for="<%= a.id %>">⋯</div></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <div class="info">Showing <%= pagination.from %>–<%= pagination.to %> of <%= pagination.totalCount.toLocaleString('en-IN') %></div>
+      <div class="page-btns">
+        <a class="page-btn <%= pagination.currentPage <= 1 ? 'disabled' : '' %>" href="?tab=<%= activeTab %>&page=<%= pagination.currentPage - 1 %>">‹</a>
+        <% for (let p = 1; p <= pagination.totalPages; p++) { %>
+        <a class="page-btn <%= p === pagination.currentPage ? 'active' : '' %>" href="?tab=<%= activeTab %>&page=<%= p %>"><%= p %></a>
+        <% } %>
+        <a class="page-btn <%= pagination.currentPage >= pagination.totalPages ? 'disabled' : '' %>" href="?tab=<%= activeTab %>&page=<%= pagination.currentPage + 1 %>">›</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="detailPanel">
+    <% if (selectedApplication) { %>
+    <div class="detail-top">
+      <div class="detail-status"><span class="pill <%= selectedApplication.statusClass %>"><%= selectedApplication.statusLabel %></span></div>
+      <div class="detail-name"><%= selectedApplication.studentName %></div>
+      <div class="detail-id"><%= selectedApplication.applicationCode %> &nbsp;·&nbsp; <%= selectedApplication.scholarshipName %></div>
+    </div>
+    <div class="detail-body">
+      <div class="subhead">Status Tracking</div>
+      <div class="stepper">
+        <% selectedApplication.steps.forEach(function(step) { %>
+        <div class="step <%= step.state %>"><div class="circle"><%= step.state === 'done' ? '✓' : step.number %></div><div class="stitle"><%= step.title %></div><div class="sdate"><%= step.date %></div></div>
+        <% }) %>
+      </div>
+      <div class="divider"></div>
+      <div class="info-grid">
+        <div class="info-item"><div class="k">Amount Requested</div><div class="v">₹<%= selectedApplication.amount.toLocaleString('en-IN') %></div></div>
+        <div class="info-item"><div class="k">CGPA</div><div class="v"><%= selectedApplication.cgpa %></div></div>
+        <div class="info-item"><div class="k">Category</div><div class="v"><%= selectedApplication.category %></div></div>
+        <div class="info-item"><div class="k">Family Income</div><div class="v">₹<%= selectedApplication.familyIncome.toLocaleString('en-IN') %></div></div>
+      </div>
+      <div class="subhead">Attached Documents</div>
+      <% if (selectedApplication.documents.length > 0) { %>
+      <div class="doc-checklist">
+        <% selectedApplication.documents.forEach(function(doc) { %>
+        <div class="doc-check-row"><span class="l"><span class="check-icon ok">✓</span><%= doc %></span></div>
+        <% }) %>
+      </div>
+      <% } else { %>
+      <div class="empty-state" style="padding: 16px 0; text-align: left;">Document tracking isn't set up for this application yet.</div>
+      <% } %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">Select an application from the list to see details.</div>
+    <% } %>
+  </div>
+</div>
+
+</main>
+
+<script>
+  (function () {
+    const statusClassMap = { pending: 'pending', approved: 'approved', rejected: 'rejected' };
+    const detailPanel = document.getElementById('detailPanel');
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str == null ? '' : String(str);
+      return div.innerHTML;
+    }
+
+    function formatInr(num) {
+      return Number(num || 0).toLocaleString('en-IN');
+    }
+
+    // Rebuild the entire right-hand panel from a JSON application object,
+    // in the exact same shape/markup the server renders on page load.
+    function renderDetailPanel(app) {
+      if (!app) {
+        detailPanel.innerHTML = '<div class="empty-state">Select an application from the list to see details.</div>';
+        return;
+      }
+
+      const statusClass = statusClassMap[(app.statusLabel || '').toLowerCase()] || 'pending';
+
+      const stepsHtml = app.steps.map(function (step) {
+        const circleContent = step.state === 'done' ? '✓' : step.number;
+        return (
+          '<div class="step ' + step.state + '">' +
+            '<div class="circle">' + circleContent + '</div>' +
+            '<div class="stitle">' + escapeHtml(step.title) + '</div>' +
+            '<div class="sdate">' + escapeHtml(step.date) + '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      const docsHtml = (app.documents && app.documents.length > 0)
+        ? '<div class="doc-checklist">' + app.documents.map(function (doc) {
+            return '<div class="doc-check-row"><span class="l"><span class="check-icon ok">✓</span>' + escapeHtml(doc) + '</span></div>';
+          }).join('') + '</div>'
+        : '<div class="empty-state" style="padding: 16px 0; text-align: left;">Document tracking isn\'t set up for this application yet.</div>';
+
+      detailPanel.innerHTML =
+        '<div class="detail-top">' +
+          '<div class="detail-status"><span class="pill ' + statusClass + '">' + escapeHtml(app.statusLabel) + '</span></div>' +
+          '<div class="detail-name">' + escapeHtml(app.studentName) + '</div>' +
+          '<div class="detail-id">' + escapeHtml(app.applicationCode) + ' &nbsp;·&nbsp; ' + escapeHtml(app.scholarshipName) + '</div>' +
+        '</div>' +
+        '<div class="detail-body">' +
+          '<div class="subhead">Status Tracking</div>' +
+          '<div class="stepper">' + stepsHtml + '</div>' +
+          '<div class="divider"></div>' +
+          '<div class="info-grid">' +
+            '<div class="info-item"><div class="k">Amount Requested</div><div class="v">₹' + formatInr(app.amount) + '</div></div>' +
+            '<div class="info-item"><div class="k">CGPA</div><div class="v">' + escapeHtml(app.cgpa) + '</div></div>' +
+            '<div class="info-item"><div class="k">Category</div><div class="v">' + escapeHtml(app.category) + '</div></div>' +
+            '<div class="info-item"><div class="k">Family Income</div><div class="v">₹' + formatInr(app.familyIncome) + '</div></div>' +
+          '</div>' +
+          '<div class="subhead">Attached Documents</div>' +
+          docsHtml +
+        '</div>';
+    }
+
+    // Highlight the clicked row and clear the previous selection
+    function markRowSelected(id) {
+      document.querySelectorAll('.app-row').forEach(function (r) {
+        r.classList.toggle('selected', r.getAttribute('data-id') === String(id));
+      });
+    }
+
+    // Fetch one application's detail and update the panel + URL (no reload)
+    function loadApplication(id) {
+      fetch('/applications/api/' + id)
+        .then(function (res) {
+          if (!res.ok) throw new Error('Failed to load application');
+          return res.json();
+        })
+        .then(function (app) {
+          renderDetailPanel(app);
+          markRowSelected(id);
+          const url = new URL(window.location.href);
+          url.searchParams.set('id', id);
+          window.history.pushState({}, '', url.toString());
+        })
+        .catch(function (err) {
+          console.error(err);
+          alert('Could not load that application. Please try again.');
+        });
+    }
+
+    // Clicking a row loads that student's detail into the panel via AJAX
+    document.querySelectorAll('.app-row').forEach(function (row) {
+      row.addEventListener('click', function (e) {
+        // Don't hijack clicks on the "..." action icon
+        if (e.target.closest('.row-icon')) return;
+        loadApplication(row.getAttribute('data-id'));
+      });
+    });
+
+    // Simple action menu for the "..." icon (approve / reject / view shortcuts)
+    let openMenu = null;
+
+    function closeMenu() {
+      if (openMenu) {
+        openMenu.remove();
+        openMenu = null;
+      }
+    }
+
+    document.querySelectorAll('[data-menu-for]').forEach(function (icon) {
+      icon.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const existing = openMenu;
+        closeMenu();
+        if (existing) return; // toggle off if it was already open for this icon
+
+        const id = icon.getAttribute('data-menu-for');
+        const menu = document.createElement('div');
+        menu.style.position = 'absolute';
+        menu.style.background = '#fff';
+        menu.style.border = '1px solid #e6e6ea';
+        menu.style.borderRadius = '8px';
+        menu.style.boxShadow = '0 6px 18px rgba(20,20,30,.12)';
+        menu.style.padding = '6px';
+        menu.style.zIndex = '50';
+        menu.style.minWidth = '140px';
+        menu.innerHTML = [
+          '<div class="menu-item" data-action="view" style="padding:8px 10px;font-size:13px;border-radius:6px;cursor:pointer;">View details</div>',
+          '<div class="menu-item" data-action="approve" style="padding:8px 10px;font-size:13px;border-radius:6px;cursor:pointer;">Approve</div>',
+          '<div class="menu-item" data-action="reject" style="padding:8px 10px;font-size:13px;border-radius:6px;cursor:pointer;">Reject</div>'
+        ].join('');
+
+        menu.querySelectorAll('.menu-item').forEach(function (item) {
+          item.addEventListener('mouseenter', function () { item.style.background = '#f5f5f8'; });
+          item.addEventListener('mouseleave', function () { item.style.background = 'transparent'; });
+          item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const action = item.getAttribute('data-action');
+            closeMenu();
+
+            if (action === 'view') {
+              loadApplication(id);
+              return;
+            }
+
+            // Approve / reject: POST to backend, then refresh just the panel
+            // (and the row's status pill) without a full page reload.
+            fetch('/applications/' + id + '/' + action, { method: 'POST' })
+              .then(function (res) {
+                if (!res.ok) throw new Error('Request failed');
+                return res.json();
+              })
+              .then(function () {
+                // The row's tab/status may no longer belong on this page
+                // (e.g. approving a Pending row), so a full reload is the
+                // simplest way to keep the list and KPI counts correct.
+                window.location.reload();
+              })
+              .catch(function (err) {
+                console.error(err);
+                alert('Could not update application status. Please try again.');
+              });
+          });
+        });
+
+        document.body.appendChild(menu);
+        const rect = icon.getBoundingClientRect();
+        menu.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+        menu.style.left = (window.scrollX + rect.right - 140) + 'px';
+        openMenu = menu;
+      });
+    });
+
+    document.addEventListener('click', closeMenu);
+
+    // Export button — GET the current filtered view as CSV
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function () {
+        const url = new URL(window.location.href);
+        url.pathname = url.pathname.replace(/\/?$/, '/export');
+        window.location.href = url.toString();
+      });
+    }
+
+    // Debounced live search: auto-submit the filter form shortly after typing stops
+    const searchInput = document.querySelector('.search-wrap input[name="q"]');
+    const filterForm = document.getElementById('filterForm');
+    let debounceTimer = null;
+    if (searchInput && filterForm) {
+      searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+          filterForm.submit();
+        }, 500);
+      });
+    }
+  })();
+</script>
+
+<%- include('partials/footer') %>

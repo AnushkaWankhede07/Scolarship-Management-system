@@ -1,0 +1,161 @@
+<%- include('partials/head', { title: 'Sign In' }) %>
+
+<style>
+  .login-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #1e3a5f 100%);
+    padding: 24px;
+    font-family: inherit;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 380px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+
+  .login-card-head {
+    padding: 32px 32px 24px;
+    text-align: center;
+    border-bottom: 1px solid #f1f1f1;
+  }
+
+  .login-mark {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1e293b, #334155);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+  }
+
+  .login-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  .login-subtitle {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+
+  .login-card-body {
+    padding: 28px 32px 32px;
+  }
+
+  .login-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+
+  .login-field {
+    margin-bottom: 16px;
+  }
+
+  .login-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+
+  .login-field input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s ease;
+    color: #0f172a;
+  }
+
+  .login-field input:focus {
+    border-color: #334155;
+  }
+
+  .login-field input::placeholder {
+    color: #cbd5e1;
+  }
+
+  .login-submit {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 9px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .login-submit:hover {
+    background: #1e293b;
+  }
+
+  .login-foot {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+</style>
+
+<div class="login-screen">
+  <div class="login-card">
+    <div class="login-card-head">
+      <div class="login-mark">VS</div>
+      <div class="login-title">Vidya Sethu Admin</div>
+      <div class="login-subtitle">Scholarship Management Portal</div>
+    </div>
+
+    <div class="login-card-body">
+      <% if (error) { %>
+      <div class="login-error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/login">
+        <div class="login-field">
+          <label>Email</label>
+          <input type="email" name="email" required autofocus placeholder="admin1@scholarship.com">
+        </div>
+
+        <div class="login-field">
+          <label>Password</label>
+          <input type="password" name="password" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="login-submit">Sign In</button>
+      </form>
+
+      <div class="login-foot">Vidya Sethu &middot; Government Scholarship Portal</div>
+    </div>
+  </div>
+</div>
